@@ -22,6 +22,22 @@ typedef struct procStat {
 	unsigned long long starttime, delayacct_blkio_ticks;
 } procStat;
 
+typedef struct Process {
+	pid_t pid;
+	char** commands;
+	unsigned length, maxLength;
+} Process;
+
+typedef struct ProcessArray {
+	Process* proc;
+	unsigned length, maxLength;
+} ProcessArray;
+
+void init(ProcessArray* processArray);
+void update(ProcessArray* processArray);
+
+void destruct(char** stringArray);
+
 void ctrlCAction();
 void childProcExit();
 procStat *getProcStat(pid_t pid);
@@ -37,6 +53,7 @@ static pid_t foregroundPid = 0;
 int main() {
 	signal(SIGINT, ctrlCAction);
 	signal(SIGCHLD, childProcExit);
+	ProcessArray processArray;
 	int i = 0;
 	while (1) {
 		printf("## myshell $ ");
@@ -55,7 +72,7 @@ int main() {
 			background = 1;
 			input[i - 1] = '\0';
 		}
-		//char** proccesses = parseInput(input);
+		char** processes = parseInput(input);
 		char** arg = parseExec(input);
 		if (strcmp(arg[0], "timeX") == 0) {
 			for (i = 0; i < sizeof(arg) - 1; i++) {
@@ -88,8 +105,31 @@ int main() {
 				foregroundPid = 0;
 			}
 		}
+
+		destruct(processes);
+		destruct(arg);
 	}
 	return 0;
+}
+
+void init(ProcessArray* processArray) {
+	processArray->proc = NULL;
+	processArray->length = 0;
+	processArray->maxLength = 5;
+	update(processArray);
+}
+
+void update(ProcessArray* processArray) {
+	processArray->proc = realloc(processArray->proc, sizeof(Process)*processArray->maxLength);
+}
+
+void destruct(char** stringArray) {
+	int i = 0;
+	while (stringArray[i] != NULL) {
+		free(stringArray[i]);
+		i++;
+	}
+	free(stringArray);
 }
 
 void ctrlCAction() {
