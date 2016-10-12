@@ -10,9 +10,8 @@
 #include "ProcStat.h"
 #include "ProcessArray.h"
 #include "getInput.h"
+#include "utils.h"
 #include "parser.h"
-
-void StringArray_destruct(char** stringArray);
 
 void ctrlCAction();
 void childProcExit();
@@ -79,15 +78,6 @@ int main() {
 		StringArray_destruct(arg);
 	}
 	return 0;
-}
-
-void StringArray_destruct(char** stringArray) {
-	int i = 0;
-	while (stringArray[i] != NULL) {
-		free(stringArray[i]);
-		i++;
-	}
-	free(stringArray);
 }
 
 void ctrlCAction() {

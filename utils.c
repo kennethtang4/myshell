@@ -2,6 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void StringArray_destruct(char** stringArray) {
+	int i = 0;
+	while (stringArray[i] != NULL) {
+		free(stringArray[i]);
+		i++;
+	}
+	free(stringArray);
+}
+
 int sizeOfDynamic(char *input) {
 	int output = 0;
 	while (*input++ != '\0') {
