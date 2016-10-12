@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "ProcessArray.h"
+
 typedef struct procStat {
 	pid_t pid, ppid, pgrp;
 	char comm[255];
@@ -22,21 +24,7 @@ typedef struct procStat {
 	unsigned long long starttime, delayacct_blkio_ticks;
 } procStat;
 
-typedef struct Process {
-	pid_t pid;
-	char** commands;
-	unsigned length, maxLength;
-} Process;
-
-typedef struct ProcessArray {
-	Process* proc;
-	unsigned length, maxLength;
-} ProcessArray;
-
-void init(ProcessArray* processArray);
-void update(ProcessArray* processArray);
-
-void destruct(char** stringArray);
+void StringArray_destruct(char** stringArray);
 
 void ctrlCAction();
 void childProcExit();
@@ -106,24 +94,13 @@ int main() {
 			}
 		}
 
-		destruct(processes);
-		destruct(arg);
+		StringArray_destruct(processes);
+		StringArray_destruct(arg);
 	}
 	return 0;
 }
 
-void init(ProcessArray* processArray) {
-	processArray->proc = NULL;
-	processArray->length = 0;
-	processArray->maxLength = 5;
-	update(processArray);
-}
-
-void update(ProcessArray* processArray) {
-	processArray->proc = realloc(processArray->proc, sizeof(Process)*processArray->maxLength);
-}
-
-void destruct(char** stringArray) {
+void StringArray_destruct(char** stringArray) {
 	int i = 0;
 	while (stringArray[i] != NULL) {
 		free(stringArray[i]);

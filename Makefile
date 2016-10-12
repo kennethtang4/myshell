@@ -1,7 +1,14 @@
+CC = gcc
+CFLAGS = -Wall
+
 all: myshell
 
-myshell: myshell.c
-	gcc $^ -o $@ -Wall
+myshell: myshell.c ProcessArray.h ProcessArray.o
+	$(CC) -c myshell.c $(CFLAGS)
+	$(CC) -o $@ myshell.o ProcessArray.o $(CFLAGS)
+
+ProcessArray: ProcessArray.c
+	gcc -c $^ $(CFLAGS)
 
 clean:
-	rm -f myshell 
+	rm -f myshell myshell.o ProcessArray.o
