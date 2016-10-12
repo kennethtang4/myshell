@@ -22,6 +22,7 @@ int main() {
 	signal(SIGINT, ctrlCAction);
 	signal(SIGCHLD, childProcExit);
 	ProcessArray processArray;
+	ProcessArray_init(&processArray);
 	int i = 0;
 	while (1) {
 		printf("## myshell $ ");
@@ -77,6 +78,7 @@ int main() {
 		StringArray_destruct(processes);
 		StringArray_destruct(arg);
 	}
+	ProcessArray_destruct(&processArray);
 	return 0;
 }
 
