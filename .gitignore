@@ -1,3 +1,5 @@
 myshell
 myshell.o
 ProcessArray.o
+utils.o
+parser.o

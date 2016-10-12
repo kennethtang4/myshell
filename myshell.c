@@ -7,34 +7,18 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "ProcStat.h"
 #include "ProcessArray.h"
-
-typedef struct procStat {
-	pid_t pid, ppid, pgrp;
-	char comm[255];
-	char state;
-	int session, tty_nr, tpgid, exit_signal, processor;
-	unsigned flags, rt_priority, policy;
-	unsigned long minflt, cminflt, majflt, cmajflt, utime, stime, vsize, rsslim;
-	unsigned long startcode, endcode, startstack, kstkesp, kstkeip, signal;
-	unsigned long blocked, sigignore, sigcatch, wchan, nswap, cnswap;
-	unsigned long guest_time;
-	long cutime, cstime, priority, nice, num_threads, itrealvalue, rss;
-	long cguest_time;
-	unsigned long long starttime, delayacct_blkio_ticks;
-} procStat;
+#include "utils.h"
+#include "parser.h"
 
 void StringArray_destruct(char** stringArray);
 
 void ctrlCAction();
 void childProcExit();
-procStat *getProcStat(pid_t pid);
-void printProcStat(procStat *stat);
+ProcStat *getProcStat(pid_t pid);
+void printProcStat(ProcStat *stat);
 char *inputString(size_t size);
-char **parseInput(char *input);
-char **parseExec(char *exec);
-int sizeOfDynamic(char *input);
-char *timeToString (unsigned long time);
 
 static pid_t foregroundPid = 0;
 
@@ -120,7 +104,7 @@ void childProcExit() {
 	while ((waitidResult = waitid(P_ALL, 0, &infop, WNOWAIT | WEXITED)) >= 0) {
 		pid_t pid = infop.si_pid;
 		if (pid != foregroundPid) {
-			procStat *stat = getProcStat(pid);
+			ProcStat *stat = getProcStat(pid);
 			printf("Program terminated.\n");
 			if (stat != NULL) {
 				printf("[%d] %s Done\n", (int) stat->pid, stat->comm);
@@ -132,8 +116,8 @@ void childProcExit() {
 	}
 }
 
-procStat *getProcStat(pid_t pid) {
-	procStat *stat = NULL;
+ProcStat *getProcStat(pid_t pid) {
+	ProcStat *stat = NULL;
 	int i;
 	char procStatPath[100];
 
@@ -143,7 +127,7 @@ procStat *getProcStat(pid_t pid) {
 	if (file == NULL) {
 		printf("Error in open my proc file: %s\n", procStatPath);
 	} else {
-		stat = malloc(1 * sizeof(procStat));
+		stat = malloc(1 * sizeof(ProcStat));
 		fscanf(file, "%d %s %c %d %d %d %d %d %u %lu %lu %lu %lu %lu %lu %ld %ld %ld %ld %ld %ld %llu %lu %ld %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %d %d %u %u %llu %lu %ld", &(stat->pid), stat->comm, &(stat->state), &(stat->ppid), &(stat->pgrp), &(stat->session), &(stat->tty_nr), &(stat->tpgid), &(stat->flags), &(stat->minflt), &(stat->cminflt), &(stat->majflt), &(stat->cmajflt), &(stat->utime), &(stat->stime), &(stat->cutime), &(stat->cstime), &(stat->priority), &(stat->nice), &(stat->num_threads), &(stat->itrealvalue), &(stat->starttime), &(stat->vsize), &(stat->rss), &(stat->rsslim), &(stat->startcode), &(stat->endcode), &(stat->startstack), &(stat->kstkesp), &(stat->kstkeip), &(stat->signal), &(stat->blocked), &(stat->sigignore), &(stat->sigcatch), &(stat->wchan), &(stat->nswap), &(stat->cnswap), &(stat->exit_signal), &(stat->processor), &(stat->rt_priority), &(stat->policy), &(stat->delayacct_blkio_ticks), &(stat->guest_time), &(stat->cguest_time));
 		fclose(file);
 
@@ -158,7 +142,7 @@ procStat *getProcStat(pid_t pid) {
 	return stat;
 }
 
-void printProcStat(procStat *stat) {
+void printProcStat(ProcStat *stat) {
 	if (stat != NULL) {
 		char *userTimeString, *systemTimeString;
 		userTimeString = timeToString(stat->utime);
@@ -184,57 +168,4 @@ char *inputString(size_t size){
 	}
 	str[len++]='\0';
 	return realloc(str, sizeof(char)*len);
-}
-
-char **parseInput(char* input) {
-	int numberOfElements = 5;
-	char **output = malloc(numberOfElements * sizeof(char*));
-	char *p = strtok(input, " | ");
-	int i = 0;
-	while (p != NULL) {
-		if ((i + 1) >= numberOfElements) {
-			numberOfElements += 5;
-			output = realloc(output, numberOfElements * sizeof(char*));
-		}
-		int length = sizeOfDynamic(p);
-		output[i] = malloc((length + 1) * sizeof(char));
-		strcpy(output[i++], p);
-		p = strtok(NULL, " | ");
-	}
-	output[i++] = NULL;
-	return output;
-}
-
-char **parseExec(char* exec) {
-	int numberOfElements = 5;
-	char **output = malloc(numberOfElements * sizeof(char*));
-	char *p = strtok(exec, " ");
-	int i = 0;
-	while (p != NULL) {
-		if ((i + 1) >= numberOfElements) {
-			numberOfElements += 5;
-			output = realloc(output, numberOfElements * sizeof(char*));
-		}
-		int length = sizeOfDynamic(p);
-		output[i] = malloc((length + 1) * sizeof(char));
-		strcpy(output[i++], p);
-		p = strtok(NULL, " ");
-	}
-	output[i++] = NULL;
-	return output;
-}
-
-int sizeOfDynamic(char *input) {
-	int output = 0;
-	while (*input++ != '\0') {
-		output++;
-	}
-	return output;
-}
-
-char *timeToString(unsigned long time) {
-		double timeInSecond = time * 1.0f / sysconf(_SC_CLK_TCK);
-		char *timeInString = malloc(255 * sizeof(char));
-		sprintf(timeInString, "%.2lf s", timeInSecond);
-		return timeInString;
 }
