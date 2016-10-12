@@ -9,16 +9,13 @@
 
 #include "ProcStat.h"
 #include "ProcessArray.h"
-#include "utils.h"
+#include "getInput.h"
 #include "parser.h"
 
 void StringArray_destruct(char** stringArray);
 
 void ctrlCAction();
 void childProcExit();
-ProcStat *getProcStat(pid_t pid);
-void printProcStat(ProcStat *stat);
-char *inputString(size_t size);
 
 static pid_t foregroundPid = 0;
 
@@ -29,7 +26,7 @@ int main() {
 	int i = 0;
 	while (1) {
 		printf("## myshell $ ");
-		char *input = inputString(10);
+		char *input = getInput(10);
 		if (input[0] == '\0') {
 			continue;
 		}
@@ -114,58 +111,4 @@ void childProcExit() {
 		}
 		waitpid(pid, &status, 0);
 	}
-}
-
-ProcStat *getProcStat(pid_t pid) {
-	ProcStat *stat = NULL;
-	int i;
-	char procStatPath[100];
-
-	FILE *file;
-	sprintf(procStatPath, "/proc/%d/stat", (int) pid);
-	file = fopen(procStatPath, "r");
-	if (file == NULL) {
-		printf("Error in open my proc file: %s\n", procStatPath);
-	} else {
-		stat = malloc(1 * sizeof(ProcStat));
-		fscanf(file, "%d %s %c %d %d %d %d %d %u %lu %lu %lu %lu %lu %lu %ld %ld %ld %ld %ld %ld %llu %lu %ld %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %d %d %u %u %llu %lu %ld", &(stat->pid), stat->comm, &(stat->state), &(stat->ppid), &(stat->pgrp), &(stat->session), &(stat->tty_nr), &(stat->tpgid), &(stat->flags), &(stat->minflt), &(stat->cminflt), &(stat->majflt), &(stat->cmajflt), &(stat->utime), &(stat->stime), &(stat->cutime), &(stat->cstime), &(stat->priority), &(stat->nice), &(stat->num_threads), &(stat->itrealvalue), &(stat->starttime), &(stat->vsize), &(stat->rss), &(stat->rsslim), &(stat->startcode), &(stat->endcode), &(stat->startstack), &(stat->kstkesp), &(stat->kstkeip), &(stat->signal), &(stat->blocked), &(stat->sigignore), &(stat->sigcatch), &(stat->wchan), &(stat->nswap), &(stat->cnswap), &(stat->exit_signal), &(stat->processor), &(stat->rt_priority), &(stat->policy), &(stat->delayacct_blkio_ticks), &(stat->guest_time), &(stat->cguest_time));
-		fclose(file);
-
-		i = 0;
-		while (stat->comm[i] != '\0') {
-			stat->comm[i] = stat->comm[i + 1];
-			i++;
-		}
-		stat->comm[i - 2] = '\0';
-	}
-
-	return stat;
-}
-
-void printProcStat(ProcStat *stat) {
-	if (stat != NULL) {
-		char *userTimeString, *systemTimeString;
-		userTimeString = timeToString(stat->utime);
-		systemTimeString = timeToString(stat->stime);
-		printf("\n");
-		printf("%s\t%-25s\t%-10s\t%-10s\n", "PID", "CMD", "UTIME", "STIME");
-		printf("%d\t%-25s\t%-10s\t%-10s\n", (int) stat->pid, stat->comm, userTimeString, systemTimeString);
-	}
-}
-
-char *inputString(size_t size){
-	char *str;
-	int ch;
-	size_t len = 0;
-	str = realloc(NULL, sizeof(char)*size);
-	if (!str) return str;
-	while (EOF != (ch = fgetc(stdin)) && ch != '\n'){
-		str[len++]=ch;
-		if(len==size){
-			str = realloc(str, sizeof(char)*(size+=16));
-			if(!str)return str;
-		}
-	}
-	str[len++]='\0';
-	return realloc(str, sizeof(char)*len);
 }

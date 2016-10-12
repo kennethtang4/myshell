@@ -14,3 +14,6 @@ typedef struct ProcStat {
 	long cguest_time;
 	unsigned long long starttime, delayacct_blkio_ticks;
 } ProcStat;
+
+ProcStat *getProcStat(pid_t pid);
+void printProcStat(ProcStat *stat);
