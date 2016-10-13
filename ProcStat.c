@@ -33,12 +33,14 @@ ProcStat *getProcStat(pid_t pid) {
 
 void printProcStat(ProcStat *stat) {
 	if (stat != NULL) {
-		char *userTimeString, *systemTimeString;
+		char *realTimeString, *userTimeString, *systemTimeString;
+		realTimeString = timeToString(stat->utime + stat->stime);
 		userTimeString = timeToString(stat->utime);
 		systemTimeString = timeToString(stat->stime);
 		printf("\n");
-		printf("%s\t%-25s\t%-10s\t%-10s\n", "PID", "CMD", "UTIME", "STIME");
-		printf("%d\t%-25s\t%-10s\t%-10s\n", (int) stat->pid, stat->comm, userTimeString, systemTimeString);
+		printf("%s\t%-15s\t%-10s\t%-10s\t%-10s\n", "PID", "CMD", "RTIME", "UTIME", "STIME");
+		printf("%d\t%-15s\t%-10s\t%-10s\t%-10s\n", (int) stat->pid, stat->comm, realTimeString, userTimeString, systemTimeString);
+		free(realTimeString);
 		free(userTimeString);
 		free(systemTimeString);
 	}

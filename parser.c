@@ -7,6 +7,7 @@
 int isBackground(char* input) {
 	int i = sizeOfDynamic(input);
 	if (input[i - 1] == '&' && input[i - 2] == ' ') {
+		input[i - 1] = '\0';
 		input[i - 2] = '\0';
 		return 1;
 	}
@@ -33,10 +34,12 @@ int isTimeX(char *input) {
 	if (input[5] != ' ') {
 		return 0;
 	}
-	for (j = 0; j < i; j++) {
+	for (j = 0; j < i - 5; j++) {
 		input[j] = input[j + 6];
 	}
-	input[j++] = '\0';
+	for (j = i - 5; j < i; j++) {
+		input[j] = '\0';
+	}
 	return 1;
 }
 

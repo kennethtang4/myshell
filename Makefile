@@ -3,17 +3,17 @@ CFLAGS = -Wall
 
 all: myshell
 
-myshell: myshell.c getInput ProcessArray utils parser ProcStat
+myshell: myshell.c getInput PidArray Process utils parser ProcStat
 	$(CC) -c myshell.c $(CFLAGS)
-	$(CC) -o $@ myshell.o getInput.o Process.o ProcessArray.o utils.o parser.o ProcStat.o $(CFLAGS)
+	$(CC) -o $@ myshell.o getInput.o PidArray.o Process.o utils.o parser.o ProcStat.o $(CFLAGS)
 
 getInput: getInput.c getInput.h
 	gcc -c $@.c $(CFLAGS)
 
-Process: Process.c Process.h
+PidArray: PidArray.c PidArray.h
 	gcc -c $@.c $(CFLAGS)
 
-ProcessArray: ProcessArray.c ProcessArray.h Process
+Process: Process.c Process.h
 	gcc -c $@.c $(CFLAGS)
 
 utils: utils.c utils.h
@@ -26,4 +26,4 @@ ProcStat: ProcStat.c ProcStat.h
 	gcc -c $@.c $(CFLAGS)
 
 clean:
-	rm -f myshell myshell.o getInput.o Process.o ProcessArray.o utils.o parser.o ProcStat.o
+	rm -f myshell myshell.o getInput.o PidArray.o Process.o utils.o parser.o ProcStat.o

@@ -7,8 +7,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "PidArray.h"
 #include "ProcStat.h"
-#include "ProcessArray.h"
+#include "Process.h"
 #include "getInput.h"
 #include "utils.h"
 #include "parser.h"
@@ -19,21 +20,23 @@ void ctrlCAction();
 void childProcExit();
 
 static pid_t foregroundPid = 0;
+static PidArray timeXPids;
 
 int main() {
 	//signal(SIGINT, ctrlCAction);
 	signal(SIGCHLD, childProcExit);
-	ProcessArray processArray;
-	ProcessArray_init(&processArray);
+	PidArray_init(&timeXPids);
 	while (1) {
 		printf("## myshell $ ");
 		char *input = getInput(10);
 		if (strcmp(input, "exit") == 0) {
+			free(input);
 			break;
 		}
 		int background = isBackground(input);
 		int timeX = isTimeX(input);
 		if (input[0] == '\0') {
+			free(input);
 			continue;
 		}
 
@@ -43,8 +46,10 @@ int main() {
 		newProcess(&process);
 
 		Process_destruct(&process);
+
+		free(input);
 	}
-	ProcessArray_destruct(&processArray);
+	PidArray_destruct(&timeXPids);
 	return 0;
 }
 
@@ -58,7 +63,10 @@ void newProcess(Process* process) {
 		int i, in = 0, fd[2];
 		for (i = 0; i < process->length - 1; i++) {
 			pipe(fd);
-			if (fork() == 0) {
+			pid_t childPid = fork();
+			if (childPid < 0) {
+				exit(-1);
+			} else if (childPid == 0) {
 				if (in != 0) {
 					dup2(0, fd[0]);
 				}
@@ -66,6 +74,10 @@ void newProcess(Process* process) {
 					dup2(fd[1], 1);
 				}
 				execute(process->commands[i]);
+			} else {
+				PidArray_insert(&timeXPids, childPid);
+				siginfo_t infop;
+				waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
 			}
 			close(fd[1]);
 			in = fd[0];
@@ -75,9 +87,10 @@ void newProcess(Process* process) {
 		}
 		execute(process->commands[i]);
 	} else {
+		if (process->timeX == 1) {
+			PidArray_insert(&timeXPids, pid);
+		}
 		if (process->background == 0) {
-			if (process->timeX == 1) {
-			}
 			foregroundPid = pid;
 
 			siginfo_t infop;
@@ -111,7 +124,13 @@ void childProcExit() {
 	int status;
 	while ((waitidResult = waitid(P_ALL, 0, &infop, WNOWAIT | WEXITED)) >= 0) {
 		pid_t pid = infop.si_pid;
-		if (pid != foregroundPid) {
+		int timeXPidIndex = PidArray_indexOf(&timeXPids, pid);
+		if (timeXPidIndex != -1) {
+			ProcStat *stat = getProcStat(pid);
+			printProcStat(stat);
+			PidArray_delete(&timeXPids, timeXPidIndex);
+		}
+		if (pid != foregroundPid && timeXPidIndex == -1) {
 			ProcStat *stat = getProcStat(pid);
 			printf("Program terminated.\n");
 			if (stat != NULL) {
