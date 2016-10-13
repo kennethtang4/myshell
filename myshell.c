@@ -23,7 +23,6 @@ int main() {
 	signal(SIGCHLD, childProcExit);
 	ProcessArray processArray;
 	ProcessArray_init(&processArray);
-	int i = 0, j = 0;
 	while (1) {
 		printf("## myshell $ ");
 		char *input = getInput(10);
@@ -31,26 +30,7 @@ int main() {
 			break;
 		}
 		int background = isBackground(input);
-		int timeX = 0;
-		i = 0;
-		while (input[i++] != '\0');
-		i -= 2;
-		if (i >= 5) {
-			timeX = 1;
-			char timeXString[6] = "timeX ";
-			for (j = 0; j < 6; j++) {
-				if (input[j] != timeXString[j]) {
-					timeX = 0;
-					break;
-				}
-			}
-			if (timeX == 1) {
-				for (j = 0; j < i; j++) {
-					input[j] = input[j + 6];
-				}
-				input[j++] = '\0';
-			}
-		}
+		int timeX = isTimeX(input);
 		if (input[0] == '\0') {
 			continue;
 		}
@@ -71,6 +51,8 @@ int main() {
 			exit(0);
 		} else {
 			if (background == 0) {
+				if (timeX == 1) {
+				}
 				foregroundPid = pid;
 
 				siginfo_t infop;

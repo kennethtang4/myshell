@@ -6,3 +6,4 @@ ProcessArray.o
 utils.o
 parser.o
 ProcStat.o
+*.swp

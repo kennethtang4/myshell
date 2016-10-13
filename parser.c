@@ -13,6 +13,33 @@ int isBackground(char* input) {
 	return 0;
 }
 
+int isTimeX(char *input) {
+	int i = sizeOfDynamic(input), j;
+	i--;
+	if (i < 4) {
+		return 0;
+	}
+	char timeXString[5] = "timeX";
+	for (j = 0; j < 5; j++) {
+		if (input[j] != timeXString[j]) {
+			return 0;
+		}
+	}
+	if (input[5] == '\0') {
+		printf("timeX requires at least one argument to execute\n");
+		input[0] = '\0';
+		return 0;
+	}
+	if (input[5] != ' ') {
+		return 0;
+	}
+	for (j = 0; j < i; j++) {
+		input[j] = input[j + 6];
+	}
+	input[j++] = '\0';
+	return 1;
+}
+
 char **parseInput(char* input) {
 	int numberOfElements = 5;
 	char **output = malloc(numberOfElements * sizeof(char*));
