@@ -1,12 +1,24 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "utils.h"
 
+int isBackground(char* input) {
+	int i = sizeOfDynamic(input);
+	if (input[i - 1] == '&' && input[i - 2] == ' ') {
+		input[i - 2] = '\0';
+		return 1;
+	}
+	return 0;
+}
+
 char **parseInput(char* input) {
+	char* temp = malloc(sizeof(char) * sizeOfDynamic(input));
+	strcpy(temp, input);
 	int numberOfElements = 5;
 	char **output = malloc(numberOfElements * sizeof(char*));
-	char *p = strtok(input, " | ");
+	char *p = strtok(temp, " | ");
 	int i = 0;
 	while (p != NULL) {
 		if ((i + 1) >= numberOfElements) {
@@ -19,6 +31,7 @@ char **parseInput(char* input) {
 		p = strtok(NULL, " | ");
 	}
 	output[i++] = NULL;
+	free(temp);
 	return output;
 }
 

@@ -30,15 +30,11 @@ int main() {
 		if (strcmp(input, "exit") == 0) {
 			break;
 		}
-		int background = 0;
+		int background = isBackground(input);
 		int timeX = 0;
 		i = 0;
 		while (input[i++] != '\0');
 		i -= 2;
-		if (input[i] == '&' && input[i - 1] == ' ') {
-			background = 1;
-			input[i - 1] = '\0';
-		}
 		if (i >= 5) {
 			timeX = 1;
 			char timeXString[6] = "timeX ";
