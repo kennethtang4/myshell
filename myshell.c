@@ -23,17 +23,15 @@ int main() {
 	signal(SIGCHLD, childProcExit);
 	ProcessArray processArray;
 	ProcessArray_init(&processArray);
-	int i = 0;
+	int i = 0, j = 0;
 	while (1) {
 		printf("## myshell $ ");
 		char *input = getInput(10);
-		if (input[0] == '\0') {
-			continue;
-		}
 		if (strcmp(input, "exit") == 0) {
 			break;
 		}
 		int background = 0;
+		int timeX = 0;
 		i = 0;
 		while (input[i++] != '\0');
 		i -= 2;
@@ -41,13 +39,28 @@ int main() {
 			background = 1;
 			input[i - 1] = '\0';
 		}
-		char** processes = parseInput(input);
-		char** arg = parseExec(input);
-		if (strcmp(arg[0], "timeX") == 0) {
-			for (i = 0; i < sizeof(arg) - 1; i++) {
-				arg[i] = arg[i + 1];
+		if (i >= 5) {
+			timeX = 1;
+			char timeXString[6] = "timeX ";
+			for (j = 0; j < 6; j++) {
+				if (input[j] != timeXString[j]) {
+					timeX = 0;
+					break;
+				}
+			}
+			if (timeX == 1) {
+				for (j = 0; j < i; j++) {
+					input[j] = input[j + 6];
+				}
+				input[j++] = '\0';
 			}
 		}
+		if (input[0] == '\0') {
+			continue;
+		}
+
+		char** processes = parseInput(input);
+		char** arg = parseExec(input);
 
 		pid_t pid = fork();
 	

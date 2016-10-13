@@ -9,8 +9,17 @@ void ProcessArray_init(ProcessArray* processArray) {
 	ProcessArray_update(processArray);
 }
 
+void ProcessArray_insert(ProcessArray* processArray, Process process) {
+	if (processArray->length >= processArray->maxLength) {
+		processArray->maxLength += 5;
+		ProcessArray_update(processArray);
+	}
+	processArray->proc[processArray->length] = process;
+	processArray->length++;
+}
+
 void ProcessArray_update(ProcessArray* processArray) {
-	processArray->proc = realloc(processArray->proc, sizeof(Process)*processArray->maxLength);
+	processArray->proc = realloc(processArray->proc, sizeof(Process) * processArray->maxLength);
 }
 
 void ProcessArray_destruct(ProcessArray* processArray) {
