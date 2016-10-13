@@ -7,6 +7,7 @@ void Process_init(Process* process, char* input, int background, int timeX) {
 	process->commands = parseInput(input);
 	int length = 0;
 	while (process->commands[length++] != NULL);
+	length--;
 	process->background = background;
 	process->timeX = timeX;
 	process->length = length;
