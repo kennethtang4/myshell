@@ -56,7 +56,7 @@ int main() {
 		}
 
 		char** processes = parseInput(input);
-		char** arg = parseExec(input);
+		char** arg = parseExec(processes[0]);
 
 		pid_t pid = fork();
 	

@@ -1,6 +1,7 @@
 myshell
 myshell.o
 getInput.o
+Process.o
 ProcessArray.o
 utils.o
 parser.o

@@ -14,24 +14,26 @@ int isBackground(char* input) {
 }
 
 char **parseInput(char* input) {
-	char* temp = malloc(sizeof(char) * sizeOfDynamic(input));
-	strcpy(temp, input);
 	int numberOfElements = 5;
 	char **output = malloc(numberOfElements * sizeof(char*));
-	char *p = strtok(temp, " | ");
+	char* start = input;
+	char *p = strstr(start, " | ");
 	int i = 0;
 	while (p != NULL) {
-		if ((i + 1) >= numberOfElements) {
+		if ((i + 2) >= numberOfElements) {
 			numberOfElements += 5;
 			output = realloc(output, numberOfElements * sizeof(char*));
 		}
-		int length = sizeOfDynamic(p);
+		int length = p - start;
 		output[i] = malloc((length + 1) * sizeof(char));
-		strcpy(output[i++], p);
-		p = strtok(NULL, " | ");
+		strncpy(output[i++], start, length);
+		start += length + 3;
+		p = strstr(start, " | ");
 	}
+	int length = sizeOfDynamic(start);
+	output[i] = malloc((length + 1) * sizeof(char));
+	strncpy(output[i++], start, length);
 	output[i++] = NULL;
-	free(temp);
 	return output;
 }
 
