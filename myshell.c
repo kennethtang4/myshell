@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "parser.h"
 
+void newProcess(Process* process);
 void ctrlCAction();
 void childProcExit();
 
@@ -35,42 +36,46 @@ int main() {
 			continue;
 		}
 
-		char** processes = parseInput(input);
-		char** arg = parseExec(processes[0]);
+		Process process;
+		Process_init(&process, input, background, timeX);
 
-		pid_t pid = fork();
-	
-		if (pid < 0) {
-			printf("fork: error no = %s\n", strerror(errno));
-			exit(-1);
-		} else if (pid == 0) {
-			if (execvp(arg[0], arg) == -1) {
-				printf("myshell: '%s': %s\n", arg[0], strerror(errno));
-				exit(-1);
-			}
-			exit(0);
-		} else {
-			if (background == 0) {
-				if (timeX == 1) {
-				}
-				foregroundPid = pid;
+		newProcess(&process);
 
-				siginfo_t infop;
-				int waitidResult = waitid(P_PID, pid, &infop, WNOWAIT | WEXITED);
-      
-				if (waitidResult < 0) {
-					printf("Errno: %d\n", errno);
-				}
-
-				foregroundPid = 0;
-			}
-		}
-
-		StringArray_destruct(processes);
-		StringArray_destruct(arg);
+		Process_destruct(&process);
 	}
 	ProcessArray_destruct(&processArray);
 	return 0;
+}
+
+void newProcess(Process* process) {
+	pid_t pid = fork();
+
+	if (pid < 0) {
+		printf("fork: error no = %s\n", strerror(errno));
+		exit(-1);
+	} else if (pid == 0) {
+		char** arg = parseExec(process->commands[0]);
+		if (execvp(arg[0], arg) == -1) {
+			printf("myshell: '%s': %s\n", arg[0], strerror(errno));
+			exit(-1);
+		}
+		exit(0);
+	} else {
+		if (process->background == 0) {
+			if (process->timeX == 1) {
+			}
+			foregroundPid = pid;
+
+			siginfo_t infop;
+			int waitidResult = waitid(P_PID, pid, &infop, WNOWAIT | WEXITED);
+    
+			if (waitidResult < 0) {
+				printf("Errno: %d\n", errno);
+			}
+
+			foregroundPid = 0;
+		}
+	}
 }
 
 void ctrlCAction() {

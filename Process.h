@@ -3,9 +3,9 @@
 typedef struct Process {
 	pid_t pid;
 	char** commands;
+	int background, timeX;
 	unsigned length, maxLength;
 } Process;
 
-void Process_init(Process* process);
-void Process_update(Process* process);
+void Process_init(Process* process, char* input, int background, int timeX);
 void Process_destruct(Process* process);
