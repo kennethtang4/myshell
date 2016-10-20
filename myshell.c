@@ -130,7 +130,8 @@ void execute(char* command) {
 }
 
 void ctrlCAction() {
-	printf("Receives SIGINT!! IGNORE IT :)\n");
+	printf("\n## myshell $ ");
+	fflush(stdout);
 }
 
 void childProcExit() {
