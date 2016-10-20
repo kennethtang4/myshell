@@ -78,8 +78,15 @@ void newProcess(Process* process) {
 				if (process->timeX == 1) {
 					PidArray_insert(&timeXPids, childPid);
 				}
-				siginfo_t infop;
-				waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
+				if (process->background == 0) {
+					foregroundPid = childPid;
+					siginfo_t infop;
+					int waitidResult = waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
+					if (waitidResult < 0) {
+						printf("Errno: %d\n", errno);
+					}
+					foregroundPid = 0;
+				}
 			}
 			close(fd[1]);
 			in = fd[0];
@@ -94,14 +101,11 @@ void newProcess(Process* process) {
 		}
 		if (process->background == 0) {
 			foregroundPid = pid;
-
 			siginfo_t infop;
 			int waitidResult = waitid(P_PID, pid, &infop, WNOWAIT | WEXITED);
-  
 			if (waitidResult < 0) {
 				printf("Errno: %d\n", errno);
 			}
-
 			foregroundPid = 0;
 		}
 	}
