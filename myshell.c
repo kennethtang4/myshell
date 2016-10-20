@@ -75,7 +75,9 @@ void newProcess(Process* process) {
 				}
 				execute(process->commands[i]);
 			} else {
-				PidArray_insert(&timeXPids, childPid);
+				if (process->timeX == 1) {
+					PidArray_insert(&timeXPids, childPid);
+				}
 				siginfo_t infop;
 				waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
 			}
@@ -135,7 +137,6 @@ void childProcExit() {
 			printf("Program terminated.\n");
 			if (stat != NULL) {
 				printf("[%d] %s Done\n", (int) stat->pid, stat->comm);
-				//printProcStat(stat);
 				free(stat);
 			}
 		}
