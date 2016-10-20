@@ -1,3 +1,5 @@
+/*update for the process manager*/
+
 #include <sys/types.h>
 
 typedef struct Process {
