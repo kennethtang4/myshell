@@ -23,7 +23,7 @@ static pid_t foregroundPid = 0;
 static PidArray timeXPids;
 
 int main() {
-	//signal(SIGINT, ctrlCAction);
+	signal(SIGINT, ctrlCAction);
 	signal(SIGCHLD, childProcExit);
 	PidArray_init(&timeXPids);
 	while (1) {
