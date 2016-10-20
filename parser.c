@@ -43,10 +43,10 @@ int isTimeX(char *input) {
 	return 1;
 }
 
-char **parseInput(char* input) {
+char **parseInput(char *input) {
 	int numberOfElements = 5;
 	char **output = malloc(numberOfElements * sizeof(char*));
-	char* start = input;
+	char *start = input;
 	char *p = strstr(start, " | ");
 	int i = 0;
 	while (p != NULL) {
@@ -56,18 +56,20 @@ char **parseInput(char* input) {
 		}
 		int length = p - start;
 		output[i] = malloc((length + 1) * sizeof(char));
-		strncpy(output[i++], start, length);
+		strncpy(output[i], start, length);
+		output[i++][length] = '\0';
 		start += length + 3;
 		p = strstr(start, " | ");
 	}
 	int length = sizeOfDynamic(start);
 	output[i] = malloc((length + 1) * sizeof(char));
-	strncpy(output[i++], start, length);
+	strncpy(output[i], start, length);
+	output[i++][length] = '\0';
 	output[i++] = NULL;
 	return output;
 }
 
-char **parseExec(char* exec) {
+char **parseExec(char *exec) {
 	int numberOfElements = 5;
 	char **output = malloc(numberOfElements * sizeof(char*));
 	char *p = strtok(exec, " ");
