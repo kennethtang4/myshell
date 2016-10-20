@@ -40,6 +40,10 @@ int main() {
 		}
 		int background = isBackground(input);
 		int timeX = isTimeX(input);
+		if (background == 1 && timeX == 1) {
+			printf("myshell: \"timeX\" cannot be run in background mode\n");
+			continue;
+		}
 		if (input[0] == '\0') {
 			free(input);
 			continue;
