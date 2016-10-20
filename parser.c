@@ -6,9 +6,8 @@
 
 int isBackground(char* input) {
 	int i = sizeOfDynamic(input);
-	if (input[i - 1] == '&' && input[i - 2] == ' ') {
+	if (input[i - 1] == '&') {
 		input[i - 1] = '\0';
-		input[i - 2] = '\0';
 		return 1;
 	}
 	return 0;
