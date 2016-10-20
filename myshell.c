@@ -80,13 +80,13 @@ void newProcess(Process* process) {
 				}
 				if (process->background == 0) {
 					foregroundPid = childPid;
-					siginfo_t infop;
-					int waitidResult = waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
-					if (waitidResult < 0) {
-						printf("Errno: %d\n", errno);
-					}
-					foregroundPid = 0;
 				}
+				siginfo_t infop;
+				int waitidResult = waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
+				if (waitidResult < 0) {
+					printf("Errno: %d\n", errno);
+				}
+				foregroundPid = 0;
 			}
 			close(fd[1]);
 			in = fd[0];
@@ -136,7 +136,7 @@ void childProcExit() {
 			printProcStat(stat);
 			PidArray_delete(&timeXPids, timeXPidIndex);
 		}
-		if (pid != foregroundPid && timeXPidIndex == -1) {
+		if (pid != foregroundPid) {
 			ProcStat *stat = getProcStat(pid);
 			printf("Program terminated.\n");
 			if (stat != NULL) {
