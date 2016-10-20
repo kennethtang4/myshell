@@ -68,7 +68,7 @@ void newProcess(Process* process) {
 				exit(-1);
 			} else if (childPid == 0) {
 				if (in != 0) {
-					dup2(0, fd[0]);
+					dup2(in, 0);
 				}
 				if (fd[1] != 1) {
 					dup2(fd[1], 1);
