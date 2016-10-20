@@ -29,9 +29,14 @@ int main() {
 	while (1) {
 		printf("## myshell $ ");
 		char *input = getInput(10);
-		if (strcmp(input, "exit") == 0) {
-			free(input);
-			break;
+		if (strncmp(input, "exit", 4) == 0) {
+			if (strlen(input) == 4) {
+				free(input);
+				break;
+			} else {
+				printf("myshell: \"exit\" with other arguments!!!\n");
+				continue;
+			}
 		}
 		int background = isBackground(input);
 		int timeX = isTimeX(input);
