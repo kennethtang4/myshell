@@ -25,8 +25,11 @@ int isTimeX(char *input) {
 			return 0;
 		}
 	}
-	if (input[5] == '\0') {
-		printf("timeX requires at least one argument to execute\n");
+	if (input[j] == ' ') {
+		while (input[j++] == ' ');
+	}
+	if (input[j] == '\0') {
+		printf("myshell: \"timeX\" cannot be a standalone command\n");
 		input[0] = '\0';
 		return 0;
 	}
