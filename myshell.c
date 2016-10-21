@@ -140,7 +140,7 @@ void newProcess(Process* process) {
 
 void execute(char* command) {
 	while (ready == 0) {
-		usleep(1000);
+		usleep(10);
 	}
 	char** arg = parseExec(command);
 	if (execvp(arg[0], arg) == -1) {

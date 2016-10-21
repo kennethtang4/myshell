@@ -21,7 +21,6 @@ ProcStat *getProcStat(pid_t pid) {
 	ProcStat *stat = NULL;
 	int i;
 	char procStatPath[100];
-
 	FILE *file;
 	sprintf(procStatPath, "/proc/%d/stat", (int) pid);
 	file = fopen(procStatPath, "r");
@@ -39,8 +38,21 @@ ProcStat *getProcStat(pid_t pid) {
 		}
 		stat->comm[i - 2] = '\0';
 	}
-
 	return stat;
+}
+
+double getUptime() {
+	double uptime = 0.0f;
+	char uptimePath[13] = "/proc/uptime\0";
+	FILE *file;
+	file = fopen(uptimePath, "r");
+	if (file == NULL) {
+		printf("Error in open uptime file: %s\n", uptimePath);
+	} else {
+		fscanf(file, "%lf", &uptime);
+		fclose(file);
+	}
+	return uptime;
 }
 
 int isStringDigit(char* string) {
@@ -87,7 +99,7 @@ int searchChild(pid_t pid, int padding) {
 void printProcStat(ProcStat *stat) {
 	if (stat != NULL) {
 		char *realTimeString, *userTimeString, *systemTimeString;
-		realTimeString = timeToString(stat->utime + stat->stime);
+		realTimeString = timeToString(getUptime() * (double) sysconf(_SC_CLK_TCK) - stat->starttime);
 		userTimeString = timeToString(stat->utime);
 		systemTimeString = timeToString(stat->stime);
 		printf("\n");
@@ -100,7 +112,7 @@ void printProcStat(ProcStat *stat) {
 }
 
 void printViewTree() {
-	char name[7] = "myshell";
+	char name[8] = "myshell\0";
 	printf("%s", name);
 	if (searchChild(getpid(), strlen(name)) == 0) {
 		printf("\n");
