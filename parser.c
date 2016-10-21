@@ -15,7 +15,12 @@
 int isBackground(char* input) {
 	// Check if the last character is '&'.
 	// If yes then remove the character and return 1 else return 0.
-	int i = sizeOfDynamic(input);
+	int i = sizeOfDynamic(input), j;
+	for (j = 0; j < i - 2; j++) {
+		if (input[j] == '&') {
+			return - 1;
+		}
+	}
 	if (input[i - 1] == '&') {
 		input[i - 1] = '\0';
 		return 1;

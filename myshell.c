@@ -73,6 +73,10 @@ int main() {
 		}
 		// Check if the command is a background command
 		int background = isBackground(input);
+		if (background == -1) {
+			printf("myshell: '&' should not appear in the middle of the command line\n");
+			continue;
+		}
 		// Check if the command is a timeX command
 		int timeX = isTimeX(input);
 		// Prohibit timeX to run in background mode
@@ -193,14 +197,9 @@ void execute(char* command) {
 }
 
 void ctrlCAction() {
-	if (foregroundPid != 0) {
-		// Kill the child process
-		kill(foregroundPid, SIGKILL);
-	} else {
-		// Ignore the ctrl + c action and output the new prompt
-		printf("\n## myshell $ ");
-		fflush(stdout);
-	}
+	// Ignore the ctrl + c action and output the new prompt
+	printf("\n## myshell $ ");
+	fflush(stdout);
 }
 
 void childProcExit() {
