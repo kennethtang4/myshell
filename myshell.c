@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
