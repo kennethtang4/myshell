@@ -1,11 +1,13 @@
 CC = gcc
 CFLAGS = -Wall
+LIBS = myshell.o getInput.o PidArray.o Process.o utils.o parser.o ProcStat.o
 
 all: myshell
 
 myshell: myshell.c getInput PidArray Process utils parser ProcStat
 	$(CC) -c myshell.c $(CFLAGS)
-	$(CC) -o $@ myshell.o getInput.o PidArray.o Process.o utils.o parser.o ProcStat.o $(CFLAGS)
+	$(CC) -o $@ $(LIBS) $(CFLAGS)
+	rm -f $(LIBS)
 
 getInput: getInput.c getInput.h
 	gcc -c $@.c $(CFLAGS)
@@ -26,4 +28,4 @@ ProcStat: ProcStat.c ProcStat.h
 	gcc -c $@.c $(CFLAGS)
 
 clean:
-	rm -f myshell myshell.o getInput.o PidArray.o Process.o utils.o parser.o ProcStat.o
+	rm -f myshell $(LIBS)
