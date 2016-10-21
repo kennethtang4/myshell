@@ -193,9 +193,14 @@ void execute(char* command) {
 }
 
 void ctrlCAction() {
-	// Ignore the ctrl + c action and output the new prompt
-	printf("\n## myshell $ ");
-	fflush(stdout);
+	if (foregroundPid != 0) {
+		// Kill the child process
+		kill(foregroundPid, SIGKILL);
+	} else {
+		// Ignore the ctrl + c action and output the new prompt
+		printf("\n## myshell $ ");
+		fflush(stdout);
+	}
 }
 
 void childProcExit() {
@@ -224,10 +229,11 @@ void childProcExit() {
 		if (pid != foregroundPid) {
 			// If the it is not a foregroud process than output a message that the process has been terminated
 			ProcStat *stat = getProcStat(pid);
-			printf("Program terminated.\n");
 			if (stat != NULL) {
 				printf("[%d] %s Done\n", (int) stat->pid, stat->comm);
 				free(stat);
+			} else {
+				printf("[%d] Done\n", (int) pid);
 			}
 		}
 		// Clean up the zombie process
