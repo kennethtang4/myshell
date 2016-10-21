@@ -10,18 +10,21 @@
 #include <stdlib.h>
 
 char *getInput(size_t size){
+	// Get input of user with a dynamic size of char array.
+	// Every time when the array running out of space,
+	// it will ask for extra 16 char spaces.
 	char *str;
 	int ch;
 	size_t len = 0;
-	str = realloc(NULL, sizeof(char)*size);
+	str = realloc(NULL, sizeof(char) * size);
 	if (!str) return str;
 	while (EOF != (ch = fgetc(stdin)) && ch != '\n'){
-		str[len++]=ch;
-		if(len==size){
-			str = realloc(str, sizeof(char)*(size+=16));
+		str[len++] = ch;
+		if(len == size){
+			str = realloc(str, sizeof(char) * (size += 16));
 			if(!str)return str;
 		}
 	}
-	str[len++]='\0';
-	return realloc(str, sizeof(char)*len);
+	str[len++] = '\0';
+	return realloc(str, sizeof(char) * len);
 }

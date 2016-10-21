@@ -6,4 +6,4 @@
  * Compilation: make (details in Makefile)
  */
 
-char *getInput(size_t size);
+char *getInput(size_t size); // Get user input dynamicly.

@@ -12,7 +12,9 @@
 #include "parser.h"
 
 void Process_init(Process* process, char* input, int background, int timeX) {
+	// Get the commands by parsing the input
 	process->commands = parseInput(input);
+	// Get the length of the commands
 	int length = 0;
 	while (process->commands[length++] != NULL);
 	length--;
@@ -23,6 +25,7 @@ void Process_init(Process* process, char* input, int background, int timeX) {
 }
 
 void Process_destruct(Process* process) {
+	// Free the memory of the command array and reset the values
 	free(process->commands);
 	process->length = 0;
 	process->maxLength = 0;

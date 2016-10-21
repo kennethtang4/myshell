@@ -6,7 +6,7 @@
  * Compilation: make (details in Makefile)
  */
 
-int isBackground(char *input);
-int isTimeX(char *input);
-char **parseInput(char *input);
-char **parseExec(char *exec);
+int isBackground(char *input); // Check if the command should run in background
+int isTimeX(char *input); // Check if it is a timeX command
+char **parseInput(char *input); // Split the command into different parts for piping
+char **parseExec(char *exec); // Split the command into different parts of arguments for execvp

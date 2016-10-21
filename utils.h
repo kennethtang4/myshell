@@ -6,6 +6,6 @@
  * Compilation: make (details in Makefile)
  */
 
-void StringArray_destruct(char** stringArray);
-int sizeOfDynamic(char *input);
-char *timeToString (unsigned long time);
+void StringArray_destruct(char** stringArray); // Destruct a string array
+int sizeOfDynamic(char *input); // Get the length of a string
+char *timeToString (unsigned long time); // Convert unsigned long time ticks to 2 decimal string

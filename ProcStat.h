@@ -8,6 +8,7 @@
 
 #include <sys/types.h>
 
+// A structure that will record all informations in /proc/{pid}/stat file
 typedef struct ProcStat {
 	pid_t pid, ppid, pgrp;
 	char comm[255];
@@ -23,6 +24,6 @@ typedef struct ProcStat {
 	unsigned long long starttime, delayacct_blkio_ticks;
 } ProcStat;
 
-ProcStat *getProcStat(pid_t pid);
-void printProcStat(ProcStat *stat);
-void printViewTree();
+ProcStat *getProcStat(pid_t pid); // Get the specific pid's process statistic 
+void printProcStat(ProcStat *stat); // Print the process statistic out
+void printViewTree(); // Print the tree created by viewtree command
