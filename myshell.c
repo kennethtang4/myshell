@@ -144,10 +144,7 @@ void newProcess(Process* process) {
 				}
 				// Wait for the command finish before piping to the next command
 				siginfo_t infop;
-				int waitidResult = waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
-				if (waitidResult < 0) {
-					printf("Errno: %d\n", errno);
-				}
+				waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
 				foregroundPid = 0;
 			}
 			// Close the output side of the pipe
@@ -173,10 +170,7 @@ void newProcess(Process* process) {
 			// If the process is not background process than wait until it finishes
 			foregroundPid = pid;
 			siginfo_t infop;
-			int waitidResult = waitid(P_PID, pid, &infop, WNOWAIT | WEXITED);
-			if (waitidResult < 0) {
-				printf("Errno: %d\n", errno);
-			}
+			waitid(P_PID, pid, &infop, WNOWAIT | WEXITED);
 			foregroundPid = 0;
 		}
 	}
