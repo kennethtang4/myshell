@@ -26,13 +26,16 @@ void newProcess(Process* process);
 void execute(char* command);
 void ctrlCAction();
 void childProcExit();
+void sigUsr1Action();
 
 static pid_t foregroundPid = 0;
 static PidArray timeXPids;
+static int ready = 0;
 
 int main() {
 	signal(SIGINT, ctrlCAction);
 	signal(SIGCHLD, childProcExit);
+	signal(SIGUSR1, sigUsr1Action);
 	PidArray_init(&timeXPids);
 	while (1) {
 		printf("## myshell $ ");
@@ -75,8 +78,8 @@ int main() {
 }
 
 void newProcess(Process* process) {
+	ready = 0;
 	pid_t pid = fork();
-
 	if (pid < 0) {
 		printf("fork: error no = %s\n", strerror(errno));
 		exit(-1);
@@ -94,6 +97,7 @@ void newProcess(Process* process) {
 				if (fd[1] != 1) {
 					dup2(fd[1], 1);
 				}
+				ready = 1;
 				execute(process->commands[i]);
 			} else {
 				if (process->timeX == 1) {
@@ -102,6 +106,7 @@ void newProcess(Process* process) {
 				if (process->background == 0) {
 					foregroundPid = childPid;
 				}
+				kill(childPid, SIGUSR1);
 				siginfo_t infop;
 				int waitidResult = waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
 				if (waitidResult < 0) {
@@ -120,6 +125,7 @@ void newProcess(Process* process) {
 		if (process->timeX == 1) {
 			PidArray_insert(&timeXPids, pid);
 		}
+		kill(pid, SIGUSR1);
 		if (process->background == 0) {
 			foregroundPid = pid;
 			siginfo_t infop;
@@ -133,6 +139,9 @@ void newProcess(Process* process) {
 }
 
 void execute(char* command) {
+	while (ready == 0) {
+		usleep(1000);
+	}
 	char** arg = parseExec(command);
 	if (execvp(arg[0], arg) == -1) {
 		printf("myshell: '%s': %s\n", arg[0], strerror(errno));
@@ -171,4 +180,8 @@ void childProcExit() {
 		}
 		waitpid(pid, &status, 0);
 	}
+}
+
+void sigUsr1Action() {
+	ready = 1;
 }
