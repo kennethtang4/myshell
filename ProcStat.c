@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 
@@ -44,16 +45,27 @@ int isStringDigit(char* string) {
 	return 1;
 }
 
-void searchChild(pid_t pid) {
+int searchChild(pid_t pid, int padding) {
 	DIR *dir;
 	struct dirent *ent;
+	int count = 0;
 	if ((dir = opendir ("/proc")) != NULL) {
 		while ((ent = readdir (dir)) != NULL) {
 			if (isStringDigit(ent->d_name)) {
 				pid_t childPid = (pid_t) strtol(ent->d_name, (char **)NULL, 10);
 				ProcStat *ps = getProcStat(childPid);
 				if (ps->ppid == pid) {
-					printf ("%d\n", (int) childPid);
+					if (count > 0) {
+						int i;
+						for (i = 0; i < padding; i++) {
+							printf(" ");
+						}
+					}
+					printf(" - %s", ps->comm);
+					if (searchChild(childPid, padding + 3 + strlen(ps->comm)) == 0) {
+						printf("\n");
+					}
+					count++;
 				}
 			}
 		}
@@ -61,6 +73,7 @@ void searchChild(pid_t pid) {
 	} else {
 		printf("error: could not read the proc directory\n");
 	}
+	return count;
 }
 
 void printProcStat(ProcStat *stat) {
@@ -79,5 +92,9 @@ void printProcStat(ProcStat *stat) {
 }
 
 void printViewTree() {
-	searchChild(getpid());
+	char name[7] = "myshell";
+	printf("%s", name);
+	if (searchChild(getpid(), strlen(name)) == 0) {
+		printf("\n");
+	}
 }
