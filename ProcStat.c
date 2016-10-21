@@ -1,5 +1,8 @@
+#include <ctype.h>
+#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 
 #include "ProcStat.h"
@@ -31,6 +34,35 @@ ProcStat *getProcStat(pid_t pid) {
 	return stat;
 }
 
+int isStringDigit(char* string) {
+	int i = 0;
+	while (string[i] != '\0') {
+		if (!isdigit(string[i++])) {
+				return 0;
+		}
+	}
+	return 1;
+}
+
+void searchChild(pid_t pid) {
+	DIR *dir;
+	struct dirent *ent;
+	if ((dir = opendir ("/proc")) != NULL) {
+		while ((ent = readdir (dir)) != NULL) {
+			if (isStringDigit(ent->d_name)) {
+				pid_t childPid = (pid_t) strtol(ent->d_name, (char **)NULL, 10);
+				ProcStat *ps = getProcStat(childPid);
+				if (ps->ppid == pid) {
+					printf ("%d\n", (int) childPid);
+				}
+			}
+		}
+		closedir (dir);
+	} else {
+		printf("error: could not read the proc directory\n");
+	}
+}
+
 void printProcStat(ProcStat *stat) {
 	if (stat != NULL) {
 		char *realTimeString, *userTimeString, *systemTimeString;
@@ -44,4 +76,8 @@ void printProcStat(ProcStat *stat) {
 		free(userTimeString);
 		free(systemTimeString);
 	}
+}
+
+void printViewTree() {
+	searchChild(getpid());
 }

@@ -38,6 +38,10 @@ int main() {
 				continue;
 			}
 		}
+		if (strcmp(input, "viewtree") == 0) {
+			printViewTree();
+			continue;
+		}
 		int background = isBackground(input);
 		int timeX = isTimeX(input);
 		if (background == 1 && timeX == 1) {
@@ -138,8 +142,11 @@ void childProcExit() {
 	siginfo_t infop;
 	int waitidResult;
 	int status;
-	while ((waitidResult = waitid(P_ALL, 0, &infop, WNOWAIT | WEXITED)) >= 0) {
+	while ((waitidResult = waitid(P_ALL, 0, &infop, WNOHANG | WNOWAIT | WEXITED)) >= 0) {
 		pid_t pid = infop.si_pid;
+		if (pid == 0) {
+			break;
+		}
 		int timeXPidIndex = PidArray_indexOf(&timeXPids, pid);
 		if (timeXPidIndex != -1) {
 			ProcStat *stat = getProcStat(pid);

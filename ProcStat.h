@@ -17,3 +17,4 @@ typedef struct ProcStat {
 
 ProcStat *getProcStat(pid_t pid);
 void printProcStat(ProcStat *stat);
+void printViewTree();
