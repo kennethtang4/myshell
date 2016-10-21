@@ -33,7 +33,7 @@ static PidArray timeXPids;
 static int ready = 0;
 
 int main() {
-	// Register the signal handlers
+	// Register signal handlers
 	signal(SIGINT, ctrlCAction);
 	signal(SIGCHLD, childProcExit);
 	signal(SIGUSR1, sigUsr1Action);
