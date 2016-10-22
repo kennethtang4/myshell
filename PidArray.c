@@ -45,7 +45,7 @@ void PidArray_delete(PidArray* pidArray, int index) {
 	pidArray->length--;
 	// If the length of pid array is 10 spaces less than the max length of the array,
 	// the array will reduces 5 spaces to release memory
-	if (pidArray->length < pidArray->maxLength - 10) {
+	if (pidArray->length + 10 < pidArray->maxLength) {
 		pidArray->maxLength -= 5;
 		PidArray_update(pidArray);
 	}

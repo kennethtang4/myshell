@@ -100,9 +100,15 @@ char **parseInput(char *input) {
 	// Similar to above, allocate memory and copy the command
 	output[i] = malloc((length + 1) * sizeof(char));
 	strncpy(output[i], start, length);
-	output[i++][length] = '\0';
+	output[i][length] = '\0';
+	if (isStringLastCharWithSpace(output[i], '|') || isStringEmpty(output[i])) {
+		printf("myshell: Incomplete '|' sequence\n");
+		output[++i] = NULL;
+		StringArray_destruct(output);
+		return NULL;
+	}
 	// The last item of the array should be null as an identification for end of iteration
-	output[i++] = NULL;
+	output[++i] = NULL;
 	return output;
 }
 

@@ -29,9 +29,8 @@ void ctrlCAction();
 void childProcExit();
 void sigUsr1Action();
 
-static pid_t foregroundPid = 0;
-static PidArray timeXPids;
-static int ready = 0;
+static PidArray timeXPids, foregroundPids;
+static int ready = 0, in = 0, saved_stdout, fd[2];
 
 int main() {
 	// Register signal handlers
@@ -40,6 +39,7 @@ int main() {
 	signal(SIGUSR1, sigUsr1Action);
 	// Initialize the array contains pid for timeX
 	PidArray_init(&timeXPids);
+	PidArray_init(&foregroundPids);
 	while (1) {
 		// Ask for user input
 		printf("## myshell $ ");
@@ -53,9 +53,11 @@ int main() {
 			}
 			if (input[i] == '\0') {
 				free(input);
+				printf("myshell: Terminated\n");
 				break;
 			} else {
 				printf("myshell: \"exit\" with other arguments!!!\n");
+				free(input);
 				continue;
 			}
 		}
@@ -68,13 +70,17 @@ int main() {
 			}
 			if (input[i] == '\0') {
 				printViewTree();
-				continue;
+			} else {
+				printf("myshell: \"viewtree\" with other arguments!!!\n");
 			}
+			free(input);
+			continue;
 		}
 		// Check if the command is a background command
 		int background = isBackground(input);
 		if (background == -1) {
 			printf("myshell: '&' should not appear in the middle of the command line\n");
+			free(input);
 			continue;
 		}
 		// Check if the command is a timeX command
@@ -82,6 +88,7 @@ int main() {
 		// Prohibit timeX to run in background mode
 		if (background == 1 && timeX == 1) {
 			printf("myshell: \"timeX\" cannot be run in background mode\n");
+			free(input);
 			continue;
 		}
 		// If there is no command then go back to the start of the loop
@@ -93,13 +100,21 @@ int main() {
 		Process process;
 		Process_init(&process, input, background, timeX); // Initialize the process
 
+		if (process.length == 0) {
+			continue;
+		}
+
 		newProcess(&process); // Create new process
 
 		Process_destruct(&process); // Destruct the process to free up memory and prevent memory leakage
 
 		free(input); // Free the input to prevent memory leakage
 	}
-	PidArray_destruct(&timeXPids); // Free the timeX pids array to prevent memory leakage (though should not happen in modern operating system as it is end of the process)
+	// Free the timeX pids array and foregournd pids array
+	// to prevent memory leakage
+	// (though should not happen in modern operating system
+	// as it is end of the process)
+	PidArray_destruct(&timeXPids);	PidArray_destruct(&foregroundPids);
 	return 0;
 }
 
@@ -107,77 +122,50 @@ void newProcess(Process* process) {
 	// Set the ready state for execution to false
 	ready = 0;
 	// Create new child process
-	pid_t pid = fork();
-	if (pid < 0) {
-		printf("fork: error no = %s\n", strerror(errno));
-		exit(-1);
-	} else if (pid == 0) {
-		int i, in = 0, fd[2];
-		// For every processes to pipe through
-		for (i = 0; i < process->length - 1; i++) {
-			// Create the pipe
-			pipe(fd);
-			// Create the sub child process
-			pid_t childPid = fork();
-			if (childPid < 0) {
-				exit(-1);
-			} else if (childPid == 0) {
-				// If the input stream is not stdin
-				if (in != 0) {
-					// Close the input stream and duplicate the stdin to the input side of the pipe
-					dup2(in, 0);
-				}
-				// If the output side of the pipe is not stdout
+	int i;
+	in = 0;
+	for (i = 0; i < process->length; i++) {
+		pipe(fd);
+		pid_t pid = fork();
+		if (pid < 0) {
+			printf("fork: error no = %s\n", strerror(errno));
+			exit(-1);
+		} else if (pid == 0) {
+			if (process->background == 1) {
+				setpgid(0, 0);
+			}
+			if (in != 0) {
+				dup2(in, 0);
+			}
+			if (i != process->length - 1) {
 				if (fd[1] != 1) {
-					// Close the output side of the pipe and duplicate the stdout to the output side of the pipe
+					saved_stdout = dup(1);
 					dup2(fd[1], 1);
 				}
-				// Set the ready state to true
-				ready = 1;
-				// Execute the command
-				execute(process->commands[i]);
-			} else {
-				if (process->timeX == 1) {
-					// If the process is a timeX command,
-					// insert the pid into the timeXPids array for later output
-					PidArray_insert(&timeXPids, childPid);
-				}
-				if (process->background == 0) {
-					// If process is not a background command,
-					// then set the foreground pid to be the pid
-					foregroundPid = childPid;
-				}
-				// Wait for the command finish before piping to the next command
-				siginfo_t infop;
-				waitid(P_PID, childPid, &infop, WNOWAIT | WEXITED);
-				foregroundPid = 0;
 			}
-			// Close the output side of the pipe
-			close(fd[1]);
-			// Set the input stream to be the input side of the pipe
-			in = fd[0];
+			// Execute the command
+			execute(process->commands[i]);
+		} else {
+			if (process->timeX == 1) {
+				// If the process is a timeX command,
+				// insert the pid into the timeXPids array for later output
+				PidArray_insert(&timeXPids, pid);
+			}
+			// Send the self defined signal to the child process to make its ready state to be true
+			kill(pid, SIGUSR1);
+			if (process->background == 0) {
+				// If the process is not background process than wait until it finishes
+				PidArray_insert(&foregroundPids, pid);
+				if (i == process->length - 1) {
+					while (foregroundPids.length > 0) {
+						siginfo_t infop;
+						waitid(P_PID, foregroundPids.pids[0], &infop, WNOWAIT | WEXITED);
+					}
+				}
+			}
 		}
-		if (in != 0) {
-			// If the input stream is not stdin, reset it back to stdin
-			dup2(in, 0);
-		}
-		// Execute the command
-		execute(process->commands[i]);
-	} else {
-		if (process->timeX == 1) {
-			// If the process is a timeX command,
-			// insert the pid into the timeXPids array for later output
-			PidArray_insert(&timeXPids, pid);
-		}
-		// Send the self defined signal to the child process to make its ready state to be true
-		kill(pid, SIGUSR1);
-		if (process->background == 0) {
-			// If the process is not background process than wait until it finishes
-			foregroundPid = pid;
-			siginfo_t infop;
-			waitid(P_PID, pid, &infop, WNOWAIT | WEXITED);
-			foregroundPid = 0;
-		}
+		close(fd[1]);
+		in = fd[0];
 	}
 }
 
@@ -190,6 +178,8 @@ void execute(char* command) {
 	char** arg = parseExec(command);
 	// Execute the program
 	if (execvp(arg[0], arg) == -1) {
+		dup2(saved_stdout, 1);
+		close(saved_stdout);
 		printf("myshell: '%s': %s\n", arg[0], strerror(errno));
 		exit(-1);
 	}
@@ -197,9 +187,11 @@ void execute(char* command) {
 }
 
 void ctrlCAction() {
-	// Ignore the ctrl + c action and output the new prompt
-	printf("\n## myshell $ ");
-	fflush(stdout);
+	// Ignore the ctrl + c action
+	if (foregroundPids.length == 0) {
+		printf("\n## myshell $ ");
+		fflush(stdout);
+	}
 }
 
 void childProcExit() {
@@ -225,7 +217,8 @@ void childProcExit() {
 			PidArray_delete(&timeXPids, timeXPidIndex);
 		}
 		// Check if the teriminated pid is a foreground process
-		if (pid != foregroundPid) {
+		int foregroundPidIndex = PidArray_indexOf(&foregroundPids, pid);
+		if (foregroundPidIndex == -1) {
 			// If the it is not a foregroud process than output a message that the process has been terminated
 			ProcStat *stat = getProcStat(pid);
 			if (stat != NULL) {
@@ -234,6 +227,8 @@ void childProcExit() {
 			} else {
 				printf("[%d] Done\n", (int) pid);
 			}
+		} else {
+			PidArray_delete(&foregroundPids, foregroundPidIndex);
 		}
 		// Clean up the zombie process
 		waitpid(pid, &status, 0);

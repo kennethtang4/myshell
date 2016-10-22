@@ -94,21 +94,24 @@ int searchChild(pid_t pid, int padding) {
 				// Get the statistic of the process
 				ProcStat *ps = getProcStat(childPid);
 				// Check if the parent pid of the child pid is the pid passed in the function
-				if (ps->ppid == pid) {
-					// Only print the padding if the item is not the first item
-					if (count > 0) {
-						int i;
-						for (i = 0; i < padding; i++) {
-							printf(" ");
+				if (ps != NULL) {
+					if (ps->ppid == pid) {
+						// Only print the padding if the item is not the first item
+						if (count > 0) {
+							int i;
+							for (i = 0; i < padding; i++) {
+								printf(" ");
+							}
 						}
+						// Print the name with " - " for the viewtree
+						printf(" - %s", ps->comm);
+						// Recursively search for child processes
+						if (searchChild(childPid, padding + 3 + strlen(ps->comm)) == 0) {
+							printf("\n");
+						}
+						count++;
 					}
-					// Print the name with " - " for the viewtree
-					printf(" - %s", ps->comm);
-					// Recursively search for child processes
-					if (searchChild(childPid, padding + 3 + strlen(ps->comm)) == 0) {
-						printf("\n");
-					}
-					count++;
+					free(ps); // Remember to free up memory to prevent memory leakage
 				}
 			}
 		}
@@ -141,9 +144,9 @@ void printProcStat(ProcStat *stat) {
 
 void printViewTree() {
 	// Print the viewtree with starting process "myshell"
-	char name[8] = "myshell\0";
-	printf("%s", name);
-	if (searchChild(getpid(), strlen(name)) == 0) {
+	ProcStat *ps = getProcStat(getpid());
+	printf("%s", ps->comm);
+	if (searchChild(getpid(), strlen(ps->comm)) == 0) {
 		printf("\n");
 	}
 }

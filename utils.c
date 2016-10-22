@@ -29,6 +29,35 @@ int sizeOfDynamic(char *input) {
 	return output;
 }
 
+int isStringEmpty(char *input) {
+	// Check if the input string is empty
+	// String contains only space and tab are also considered as empty
+	while (*input != '\0') {
+		if (*input != ' ' && *input != '\t') {
+			return 0;
+		}
+		input++;
+	}
+	return 1;
+}
+
+int isStringLastCharWithSpace(char *input, char ch) {
+	// Compare the string from the last character
+	// If the character is a space or a tab then check the next last character
+	int length = sizeOfDynamic(input);
+	int i;
+	for (i = length - 1; i >= 0; i--) {
+		if (input[i] != ' ' || input[i] != '\t') {
+			if (input[i] == ch) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+	}
+	return 0;
+}
+
 char *timeToString(unsigned long time) {
 	// Get the time in second by dividing the system clock tick
 	double timeInSecond = time * 1.0f / sysconf(_SC_CLK_TCK);
